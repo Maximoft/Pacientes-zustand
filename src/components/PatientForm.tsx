@@ -2,15 +2,32 @@ import { useForm } from "react-hook-form"
 import Error from "./Error";
 import type { DraftPatient } from "../types";
 import { usePatientStore } from "../store";
+import { useEffect } from "react";
 
 
 export default function PatientForm() {
-  
-  const {register, handleSubmit, formState:{ errors} }=useForm<DraftPatient>()
-  const { addPatient} = usePatientStore()
+  const { addPatient, activeId, patients, updatePatient} = usePatientStore()
+
+  const {register, handleSubmit,setValue, formState:{ errors}, reset }=useForm<DraftPatient>()
+
+  useEffect(() => {
+    if(activeId){
+      const activePatient = patients.filter(patient => patient.id === activeId )[0]
+      setValue('name', activePatient.name)
+      setValue('caretaker',activePatient.caretaker)
+      setValue('email', activePatient.email)
+      setValue('date', activePatient.date)
+      setValue('symptoms', activePatient.symptoms)
+    }
+  }, [activeId])
 
   const registerPacient= (data: DraftPatient) => {
-  addPatient(data)    
+    if (activeId) {
+      updatePatient(data)
+    }else{
+        addPatient(data)    
+    }
+  reset()
   }
   return (
     <div className="md:w-1/2 lg:w-2/5 mx-5">
@@ -124,7 +141,7 @@ export default function PatientForm() {
 
             <input
                 type="submit"
-                className="bg-cyan-600 w-full p-3 text-white uppercase font-bold hover:bg-cyan-800 cursor-pointer transition-colors"
+                className="bg-cyan-600 w-full p-3 text-white uppercase font-bold hover:bg-cyan-800 cursor-pointer rounded-xl transition-colors"
                 value='Guardar Paciente'
             />
         </form> 
