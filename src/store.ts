@@ -1,8 +1,8 @@
 import { create } from "zustand";
-import type { DraftPatient, Patient } from "./types";
+import { devtools, persist } from 'zustand/middleware'
 import { v4 as uuid } from "uuid";
-import { devtools } from 'zustand/middleware'
-
+import { toast } from "react-toastify";
+import type { DraftPatient, Patient } from "./types";
 
 type PatientState = {
   patients: Patient[]
@@ -13,38 +13,46 @@ type PatientState = {
   updatePatient: (data: DraftPatient) => void
 }
 
-const createPatient = (patient: DraftPatient) : Patient => {
-  return { ...patient, id: uuid()}
+const createPatient = (patient: DraftPatient): Patient => {
+  return { ...patient, id: uuid() }
 }
 
-
 export const usePatientStore = create<PatientState>()(
-  devtools((set) => ({
-    patients: [],
-    activeId: '',
+  devtools(
+    persist((set) => ({
+      patients: [],
+      activeId: '',
 
-    addPatient: (data) =>{
-      const newPatient = createPatient(data)
-      set((state) => ({
-        patients: [...state.patients, newPatient]
-      }))
-    },
-    deletePatient: (id) => {
-      set((state) => ({
-        patients: state.patients.filter(patient => patient.id !== id)
-      }))
-    },
-    getPatientById: (id) => {
-      set(() => ({
-        activeId: id
-      }))
-    },
-    updatePatient: (data) => {
-      set((state) => ({
-        patients: state.patients.map( patient => patient.id === state.activeId ? {
-          id: state.activeId, ...data} : patient),
+      addPatient: (data) => {
+        const newPatient = createPatient(data)
+        set((state) => ({
+          patients: [...state.patients, newPatient]
+        }))
+        toast.success('Paciente Registrado Correctamente')
+      },
+
+      deletePatient: (id) => {
+        set((state) => ({
+          patients: state.patients.filter(patient => patient.id !== id)
+        }))
+      },
+
+      getPatientById: (id) => {
+        set(() => ({
+          activeId: id
+        }))
+      },
+
+      updatePatient: (data) => {
+        set((state) => ({
+          patients: state.patients.map(patient => patient.id === state.activeId ? {
+            id: state.activeId, ...data
+          } : patient),
           activeId: ''
-      }))
-    }
-  })
-))
+        }))
+        toast.info('Paciente Actualizado Correctamente')
+      }
+    }), {
+      name: 'patient-storage'
+    })
+  ))
